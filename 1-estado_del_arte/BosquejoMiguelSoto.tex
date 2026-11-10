@@ -1,0 +1,271 @@
+\documentclass[letter, 10pt]{article}
+\usepackage[latin1]{inputenc}
+\usepackage[spanish]{babel}
+\usepackage{amsfonts}
+\usepackage{amsmath}
+\usepackage[dvips]{graphicx}
+\usepackage{url}
+\usepackage[top=3cm,bottom=3cm,left=3.5cm,right=3.5cm,footskip=1.5cm,headheight=1.5cm,headsep=.5cm,textheight=3cm]{geometry}
+
+
+
+\begin{document}
+\title{Inteligencia Artificial \\ \begin{Large}Estado del Arte: Problema [Nombre Problema]\end{Large}}
+\author{[Nombre autor]}
+\date{\today}
+\maketitle
+
+
+%--------------------No borrar esta secci\'on--------------------------------%
+\section*{Evaluaci\'on}
+
+\begin{tabular}{ll}
+Resumen (5\%): & \underline{\hspace{2cm}} \\
+Introducci\'on (5\%):  & \underline{\hspace{2cm}} \\
+Definici\'on del Problema (10\%):  & \underline{\hspace{2cm}} \\
+Estado del Arte (40\%):  & \underline{\hspace{2cm}} \\
+Modelo Matem\'atico (20\%): &  \underline{\hspace{2cm}}\\
+Conclusiones (15\%): &  \underline{\hspace{2cm}}\\
+Bibliograf\'ia (5\%): & \underline{\hspace{2cm}}\\
+ &  \\
+\textbf{Nota Final (100\%)}:   & \underline{\hspace{2cm}}
+\end{tabular}
+%---------------------------------------------------------------------------%
+\vspace{2cm}
+
+
+\begin{abstract}
+El Truck and Trailer Routing Problem (TTRP) consiste en la planificacion de rutas de reparto a multiples clientes con demandas distintas, en donde
+se tiene una cantidad definida de camiones y cargamentos. Ciertos clientes pueden ser servidos por camiones con cargamento y otros exigen ser servidos
+por camiones desacoplados (ya sea por razones geograficas o logisticas).
+
+\end{abstract}
+
+\section{Introducci\'on}
+El presente informe tiene el objetivo de explicar el Truck and Trailer Routing Problem (TTRP), empezando por su definicion original y
+posteriormente desglosando articulos clave para caracterizar el estado del arte del problema. Para cada articulo se hara un resumen breve,
+la razon de su eleccion y su impacto en la forma de encontrar soluciones optimas.
+
+Se definira el problema en relacion a sus variables, restricciones, funcion objetivo y parametros. Usando el articulo inicial como
+base para luego detallar los variantes presentados en articulos posteriores, o de ser el caso, explicar como estos difieren a la hora
+de abordar la solucion al problema. Al tener muchas aplicaciones reales, existen multiples versiones que agregan variables para
+acercarlo mas a la realidad, el informe no pretende desviar mucho del problema original si no que enfocarse en la evolucion de las
+heuristicas empleadas.
+
+El estudio de este problema ha sido fundamental en la logistica de repartos masivos, ya que en muchos casos es necesario usar multiples
+tipos de vehiculo para satisfacer la demanda. El problema original surge en parte por problemas encontrados en la industria lactea, en
+donde los caminos rurales podian ser demasiado estrechos, haciendo dificil el transito de camiones con carga. Tambien se ha utilizado en el
+sector urbano, particularmente en partes de Brasil donde la distribucion de bebidas y tabaco ocurrian en zonas poblacionalmente densas.
+
+\section{Definici\'on del Problema}
+El primer articulo en definir este problema fue "A tabu search method for the truck and trailer routing problem - I-Ming Chao" (Chao 2002),
+el cual consistia en encontrar la ruta mas corta para una cantidad determinada de clientes, camiones y cargamentos.
+
+Se conoce la cantidad de clientes desde el inicio, en donde cada uno tiene una demanda explicita desde el inicio, la cual puede ser distinta
+entre si. Los vehiculos empleados para el reparto pueden tomar dos formatos: con carga (vehiculos completos) y sin carga, en donde los clientes
+pueden ser satisfechos con alguno de esos tipos. La capacidad de los vehiculos y sus cargas es igual para todos, en donde se conoce la cantidad
+dispuesta desde el inicio.
+
+Lo que lo diferencia de un "vehicle routing problem" (VRP) tradicional es que aqui los vehiculos pueden desacoplarse para modificar el
+abanico de clientes a los cuales este puede atender, estacionandose en la posicion de un cliente y posteriormente recorriendo una "sub-ruta",
+para la cual el vehiculo esta obligado a volver antes de retomar su curso normal.
+
+Se exige que la demanda de todos los clientes sea satisfecha, la cual debe ser atendida por un vehiculo una sola vez, osea que no se puede
+repartir la demanda de un cliente entre multiples visitas. Los vehiculos tienen una capacidad definida, por ende se deben atender los clientes
+dentro del presupuesto de capacidad inicial, para la demanda de cada uno de estos. Finalmente, si un vehiculo completo se desacopla, solo este
+puede volver a recoger su carga inicial.
+
+El objetivo es minimizar la distancia recorrida por la flota completa, la cual considera un punto de partida para todos los vehiculos a la cual
+todos deben volver una vez que la demanda total sea satisfecha.
+
+Al ser un problema que se construye a partir de un VRP (el cual es NP-hard) un TTRP tiene por lo menos la misma complejidad, por lo que un
+algoritmo exacto que pueda resolver el problema de forma optima es poco probable. El primer articulo propone buscar una solucion factible
+primero, definiendo un recorrido completo para cada vehiculo, compuesto por rutas con vehiculo con carga y sub-rutas con el vehiculo
+desacoplado.
+
+Las soluciones iniciales se construyen a partir de una "semilla", la cual define a que cliente atiende cada vehiculo primero,
+los clientes posteriores se eligen iterativamente en base a los mas lejanos a las semillas anteriores y al deposito (se eligen los mas lejanos
+primero). Sin embargo, antes de llegar a las soluciones factibles se implementa una relajacion al problema; se permite que los clientes sean
+satisfechos de forma fraccionaria, para la cual se aplica un redondeo una vez que se asignen todos los clientes, reduciendo el costo computacional
+del algoritmo. Una vez que se asignan los clientes a las rutas, se crea la ruta para clientes que pueden ser atendidos por vehiculos completos,
+posteriormente, se analizan los clientes con rutas desacopladas, para los cuales se crea una sub-ruta para el mas cercano a la ruta principal,
+si se pueden atender mas clientes, estos se agregan a la sub-ruta, si la capacidad no da o esta muy lejos, se crea otra sub-ruta.
+
+Luego de construir las soluciones iniciales, se aplica el procedimiento "descent improvement", necesario para transformar nuestras rutas
+iniciales en soluciones factibles (efecto de la relajacion aplicada).
+El primer paso consiste en mover clientes entre las rutas propuestas, para el cual se define una penalizacion que se calcula a partir de
+la demanda, la capacidad y el tipo del vehiculo. Se examinara un solo cliente a la vez, el cual no puede moverse si este se encuentra como
+punto de estacionamiento o si la ruta destino no es compatible.
+El segundo paso consiste en cambiar a dos clientes de dos rutas distintas, usando un sistema de penalizacion similar al punto anterior, en
+donde los cambios mantienen la factibilidad en relacion a la capacidad del camion.
+En el tercer paso se analizan las sub-rutas, para las cuales se eliminan las aristas que conectan al inicio de la sub-ruta (osea el inicio y
+el final) y se remplazan por aquellas que conectan dos clientes consecutivos de la sub-ruta a un cliente en la ruta principal, en terminos
+sencillos, se mantienen los clientes de la sub-ruta pero se conectan de forma distinta a la principal.
+
+Para cada solucion inicial, el procedimiento anterior correra multiples veces hasta que ninguno de los pasos se pueda ejecutar, cuando esto
+ocurra, se aplicara una limpieza de tipo "2-opt", una optimizacion conocida para problemas de grafos, la cual consiste en eliminar las rutas
+"cruazadas" entre si (comunmente usando en problemas de tipo Traveling Salesperson Problem).
+
+Los pasos anteriores generaran una serie de soluciones factibles pero no necesariamente optimas y es aqui donde entra la parte mas interesante
+del articulo, se emplea una heuristica de mejora de tipo "tabu search", para la cual se desarrolla una variante nueva llamada "ojective-based tabu
+restriction (OTB)". En terminos muy simples, tabu search consiste en mejorar una solucion inicial al desplazarse entre soluciones vecinas, para la
+cual elige el vecino que de el valor mas optimo (incluso si es peor al original), para evitar ciclos esta define una tabla "tabu", que guarda los
+caminos recientemente recorridos, permitiendo que este diversifique. Por otro lado, la heuristica nueva define un rango de mejora, en donde, cualquier
+valor que se desvie de este rango estara prohibido, se evaluaran los vecinos dentro de un numero de iteraciones definidas y si no encuentra soluciones,
+incrementara la desviacion permitida. La combinacion de ambas heuristicas hace que las iteraciones no repitan pasos ciclicamente y que ademas escape
+de los maximos locales, ya que los caminos van mejorando gradualmente y se van prohibiendo a la vez, abriendo el paso para alcanzar soluciones
+aun mejores. Finalmente, se aplica un criterio de aspiracion (AC) que excluya soluciones en la tabla tabu que son peores a la actual.
+
+\section{Estado del Arte}
+Debido al gran impacto que tiene este problema, han surgido multiples articulos abordando TTRP y sus variantes. Uno de los mas interesantes se encuentra
+en "A note on the truck and trailer routing problem" (Lin, Yu. Chou 2010), el cual plantea una leve variante denominada "relaxed truck and trailer routing
+problem" (RTTRP), el cual evalua la posibilidad de variar la cantidad de vehiculos inciales para asi reducir la distancia recorrida por la flota. El paper
+hace un benchmark comparandolo directamente con la propuesta del 2002 y la mejor solucion de ese entonces obtenida el 2009, obteniendo resultados consistentemente
+mejores que ambos, con un margen promedio de 5 porciento mejor que la ultima.
+
+Anos mas tarde, aparece "A matheuristic for the truck and trailer routing problem" (Villegas, Prins, Prodhon, Medaglia, Velasco 2013) con el fin de emplear
+los ultimos metodos de optimizacion hibrida. Las matheuristicas surgen como la alternativa a los metodos exactos, las heuristicas y las metaheuristicas. Este
+acercamiento descompone el problema inicial en multiples sub-espacios, restringiendo el espacio de busqueda a vecinos locales y usando programacion matematica
+para hallar una mejor solucion. Se emplea un metodo hybrid GRASP x ILS como columnas en una formulacion de set-partitioning. Este nuevo metodo logro los mejores
+resultados en terminos de calidad y tiempo de computo para su epoca, abordando tambien RTTP para flotas con tamano variable.
+
+El ano 2025 aparecio el articulo "A Cooperative Algorithm to Tackle the Truck and Trailer Routing Problem" el cual planteaba resolver el problema usando
+algoritmos cooperativos, metodo que consiste en separar un algoritmo en multiples procesos independientes que trabajan en subconjuntos de informacion que
+los otros procesos desconocen. Dichos espacios se resuelven por si solos y luego van "evolucionando", generando nuevos espacios de soluciones que sirven
+para iterar y llegar a nuevos optimos. En particular, este paper emple el algorimo "CoopA", el cual es competitivo con otros del mismo tipo, por lo que
+abre las puertas a una nueva area a estudiar.
+
+Finalmente, uno de los ultimos articulos publicados del tema es "Nuevos optimos para el Problema de Rutas de Camiones y Remolques con Restricciones de Capacidad
+usando un algoritmo colaborativo", el cual combina multiples aspectos de los descubrimientos mencionados. Esta propuesta hace uso de CORAL, un algoritmo de busqueda
+local centrado en resolver el CTTRP. CORAL consta de dos fases, la primera de contruccion, basado en procedimientos GRAASP y una fase posterior de reparacion basada
+en procedimientos Hill-climbing. Esta propuesta obtiene optimos iguales a los de la literatura de forma consistente, pero al mismo tiempo siendo considerablemente
+mas eficiente.
+
+Es importante notar que hasta la fecha, el problema siempre se aborda con una metodologia de dos pasos: encontrar una solucion factible rapido y posteriormente
+mejorarla con heuristicas especificas, evidente en todos los articulos discutidos hasta ahora.
+
+\section{Modelo Matem\'atico}
+En esta seccion se describe el modelo matematico del problema planteado en el articulo original del 2002, desglosando las variables, restricciones, funcion objetivo
+y parametros en cada seccion.
+
+\subsection{Parametros}
+Los parametros del sistema se conocen desde un principio, primero se define la demanda de cada cliente:
+
+q_i: La demanda del cliente i
+
+En donde cada cliente tiene un tipo, el restringe el tipo de vehiculo que puede atenderlo
+
+ti:
+0 vehicle customer (v.c.)
+1 truck customer (t.c.)
+
+Un v.c. puede ser atendido por camion solo o por camion + remolque.
+Un t.c. solamente puede ser atendido por camion solo.
+
+Luego, tenemos la distancia desde un cliente (i) a otro (j)
+
+c_ij = distancia euclidiana entre i y j
+
+Para la flota, cada camion y remolque tienen capacidades aparte e iguales para cada tipo
+
+Q_1: capacidad de cada camion
+Q_2: capacidad de cada remolque
+
+Por lo que la capacidad de un vehiculo completo es Q_1 + Q_2.
+
+La capcidad de la flota tambien se conoce de antemano y es fijo, para problemas de RTTRP esto pasa
+a ser una variable pero para el articulo original es una constante.
+
+m_1: numero de camniones
+m_2: numero de remolques
+
+En donde se establece que m_1 > m_2. La posicion del deposito se omite aqui por simplicidad.
+
+\subsection{Variables}
+
+De forma preliminar, se separan los clientes por ruta.
+
+x_ij = 1 si el cliente i pertenece a la ruta j, 0 si no
+
+El artículo utiliza explicitamente variables x_ij para su problema de asignacion relajado.
+
+Luego, para cada ruta hay que definir lo siguiente:
+
+1. Cuales son los puntos de acople y desacople
+2. Que clientes van en un sub-tour
+3. En que orden se visitan
+4. Cuantos sub-tours hay
+
+\subsection{Retricciones}
+
+1. Todos los clientes deben ser atendidos:
+
+Cada cliente i debe pertencer a una ruta.
+
+La sumatorio de x_ij para todo j debe ser 1.
+
+El articulo utiliza precisamente esta restriccion en su problema de asignacion.
+
+2. No se puede dividir la demanda.
+
+Esta restriccion va de la mano con la anterior ya que si pertenece a una ruta, se fuerza a que se satisfaga una sola vez.
+
+3. Se respetan las capacidades
+
+Una pure truck route debe cumplir:
+
+La sumatorio de q_i <= Q_1
+
+Lo mismo ocurre con un sub-tour:
+
+La sumatorio de q_i <= Q_1 (con i siendo del sub-tour)
+
+Porque durante el sub-tour está circulando solamente el camión.
+
+4. Tipos de cliente.
+
+Se debe respetar que cada tipo de cliente sea atendido por el vehiculo del tipo correspondiente.
+
+\subsection{Funcion Objetivo}
+
+Aqui el objetivo se define simplemente como:
+
+min distancia total recorrida por la flota
+
+Para las conexiones utilizadas:
+
+(i,j)
+
+Y cada una tiene distancia c_ij, conceptualmente:
+
+mini∑​j∑​cij​xij​
+
+La formulacion concreta del articulo utiliza la distancia total recorrida como objetivo, asumiendo que el costo es proporcional a la distancia.
+
+\section{Conclusiones}
+Conclusiones RELEVANTES del estudio realizado. Deber\'ia responder a las preguntas: ?`todas las t\'ecnicas resuelven el mismo problema o hay algunas diferencias?, ?`En qu\'e se parecen o difieren las t\'ecnicas en el contexto del problema?, ?`qu\'e limitaciones tienen?, ?`qu\'e t\'ecnicas o estrategias son las m\'as prometedoras?, ?`existe trabajo futuro por realizar?, ?`qu\'e ideas usted propone como lineamientos para continuar con investigaciones futuras?
+
+\section{Uso LLMs}
+Indique ac\'a, para las herramientas de LLMs/IA usadas en su proyecto. Para cada herramienta/uso, indicar:
+\begin{enumerate}
+\item Herramienta utilizada: ChatGPT, Copilot, Gemini. Incluya versi\'on si es posible: Gratuita, plan.
+\item Prop\'osito de uso: Generar ideas iniciales, explicar,  conceptos, redactar borradores, corregir estilo o gram\'atica, programar/depurar c\'odigo.
+\item Prompts relevantes: Preguntas clave que hicieron, iteraciones relevantes (si cambiaron la pregunta para mejorar resultados)
+\item Nivel de edici\'on: ?`Copiaron y pegaron?, ?`reescribieron?, ?`verificaron con otras fuentes?
+\item Validaci\'on: Uso de Libros/papers, apuntes de clase, juicio propio.
+\end{enumerate}
+%Herramienta: ChatGPT (GPT-5.x)
+%Uso: Generación de ideas y revisión de redacción
+%Prompt principal: “Explica el algoritmo SMS-EMOA con pseudocódigo formal”
+%Intervención: El texto fue adaptado, reorganizado y complementado con material de clase
+%Validación: Se contrastó con [fuente X]
+
+
+%------Esta sección puede ser removida ----------%
+\section{Bibliograf\'ia}
+Indicando toda la informaci\'on necesaria de acuerdo al tipo de documento revisado. Todas las referencias deben ser citadas en el documento.
+%------Remover hasta acá ----------%
+\bibliographystyle{plain}
+\bibliography{Referencias}
+
+\end{document} 
